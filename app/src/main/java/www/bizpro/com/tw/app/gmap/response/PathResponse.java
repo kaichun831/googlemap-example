@@ -30,6 +30,11 @@ public class PathResponse {
         private String copyrights;
         private List<LegsBean> legs;
         private OverviewPolylineBean overview_polyline;
+
+        public OverviewPolylineBean getOverview_polyline() {
+            return overview_polyline;
+        }
+
         private String summary;
         private List<?> warnings;
         private List<?> waypoint_order;
@@ -57,6 +62,10 @@ public class PathResponse {
         }
         public static class OverviewPolylineBean {
             private String points;
+
+            public String getPoints() {
+                return points;
+            }
         }
         public static class LegsBean {
             private DistanceBean distance;
@@ -98,6 +107,11 @@ public class PathResponse {
                 private DistanceBean distance;
                 private DurationBean duration;
                 private EndLocationBean end_location;
+
+                public EndLocationBean getEnd_location() {
+                    return end_location;
+                }
+
                 private String html_instructions;
                 private PolylineBean polyline;
                 private StartLocationBean start_location;

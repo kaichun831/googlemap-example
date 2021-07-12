@@ -1,11 +1,5 @@
 package www.bizpro.com.tw.app.gmap;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.core.app.ActivityCompat;
-import androidx.databinding.DataBindingUtil;
-import androidx.fragment.app.FragmentActivity;
-
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
@@ -20,6 +14,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.app.ActivityCompat;
+import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.FragmentActivity;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -27,8 +27,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.PolyUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -97,10 +97,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void moveCamera(LatLng latLng) {
         CameraUpdateFactory.zoomTo(3);
-        MarkerOptions mark  =new MarkerOptions();
+        MarkerOptions mark = new MarkerOptions();
         mark.position(latLng);
         mMap.addMarker(mark);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,8));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 8));
     }
 
     @Override
@@ -115,17 +115,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         .subscribe(
                                 response -> {
                                     if (response.isSuccessful()) {
-                                        ArrayList<LatLng> points = new ArrayList();
                                         PolylineOptions lineOptions = new PolylineOptions();
-                                        MarkerOptions markerOptions = new MarkerOptions();
-                                        for (int i = 0; i < response.body().getRoutes().get(0).getLegs().get(0).getSteps().size(); i++) {
-                                            double lat = response.body().getRoutes().get(0).getLegs().get(0).getSteps().get(i).getStart_location().getLat();
-                                            double lng = response.body().getRoutes().get(0).getLegs().get(0).getSteps().get(i).getStart_location().getLng();
-                                            LatLng latLng = new LatLng(lat, lng);
-                                            points.add(latLng);
-                                        }
-                                        Log.d("KAI", points.size() + "");
-                                        lineOptions.addAll(points);
+                                        List<LatLng> list = PolyUtil.decode(response.body().getRoutes().get(0).getOverview_polyline().getPoints());
+                                        lineOptions.addAll(list);
                                         lineOptions.width(12);
                                         lineOptions.color(Color.RED);
                                         lineOptions.geodesic(true);
@@ -135,7 +127,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                                 mMap.addPolyline(lineOptions);
                                             }
                                         });
-//
                                     } else {
                                         Log.d("KAI", "fail");
                                     }
