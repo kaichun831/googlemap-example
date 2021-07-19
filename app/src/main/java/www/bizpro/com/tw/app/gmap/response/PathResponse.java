@@ -63,17 +63,34 @@ public class PathResponse {
         public static class OverviewPolylineBean {
             private String points;
 
-            public String getPoints() {
+            public String getPoints() { //路線
                 return points;
             }
         }
         public static class LegsBean {
             private DistanceBean distance;
+
+            public DistanceBean getDistance() {
+                return distance;
+            }
+
+            public DurationBean getDuration() {
+                return duration;
+            }
+
             private DurationBean duration;
             private String end_address;
             private EndLocationBean end_location;
             private String start_address;
             private StartLocationBean start_location;
+
+            public EndLocationBean getEnd_location() {
+                return end_location;
+            }
+
+            public StartLocationBean getStart_location() {
+                return start_location;
+            }
 
             private List<StepsBean> steps;
 
@@ -89,19 +106,43 @@ public class PathResponse {
             private List<?> via_waypoint;
             public static class DistanceBean {
                 private String text;
-                private int value;
+                private int value;//距離[公里]
+
+                public int getValue() {
+                    return value;
+                }
             }
             public static class DurationBean {
                 private String text;
-                private int value;
+                private int value;//時間[分]
+
+                public int getValue() {
+                    return value;
+                }
             }
             public static class EndLocationBean {
                 private double lat;
                 private double lng;
+
+                public double getLat() {
+                    return lat;
+                }
+
+                public double getLng() {
+                    return lng;
+                }
             }
             public static class StartLocationBean {
                 private double lat;
                 private double lng;
+
+                public double getLat() {
+                    return lat;
+                }
+
+                public double getLng() {
+                    return lng;
+                }
             }
             public static class StepsBean {
                 private DistanceBean distance;
@@ -113,6 +154,15 @@ public class PathResponse {
                 }
 
                 private String html_instructions;
+
+                public String getHtml_instructions() {
+                    return html_instructions;
+                }
+
+                public void setHtml_instructions(String html_instructions) {
+                    this.html_instructions = html_instructions;
+                }
+
                 private PolylineBean polyline;
                 private StartLocationBean start_location;
 
@@ -137,6 +187,14 @@ public class PathResponse {
                 public static class EndLocationBean {
                     private double lat;
                     private double lng;
+
+                    public double getLat() {
+                        return lat;
+                    }
+
+                    public double getLng() {
+                        return lng;
+                    }
                 }
                 public static class PolylineBean {
                     private String points;

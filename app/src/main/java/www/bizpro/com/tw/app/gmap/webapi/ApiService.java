@@ -15,5 +15,5 @@ import www.bizpro.com.tw.app.gmap.response.PathResponse;
  */
 public interface ApiService {
     @GET("/maps/api/directions/json?")
-    Single<Response<PathResponse>> doQueryPath(@Query("origin") String  origin , @Query("destination") String destination, @Query("key") String apiKey);
+    Single<Response<PathResponse>> doQueryPath(@Query("origin") String  origin , @Query("destination") String destination, @Query("key") String apiKey ,@Query("language") String language);
 }

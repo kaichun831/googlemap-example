@@ -1,22 +1,15 @@
 package www.bizpro.com.tw.app.gmap;
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.core.app.ActivityCompat;
+import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.FragmentActivity;
 
@@ -29,45 +22,31 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import www.bizpro.com.tw.app.gmap.databinding.ActivityMapsBinding;
+import www.bizpro.com.tw.app.gmap.response.PathResponse;
+import www.bizpro.com.tw.app.gmap.service.GpsService;
 import www.bizpro.com.tw.app.gmap.webapi.ApiManager;
 import www.bizpro.com.tw.app.gmap.webapi.ApiService;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener {
     ActivityMapsBinding binding;
-
     private GoogleMap mMap;
-    public static double latitude = 0;
-    public static double longitude = 0;
-    static public LocationManager locationManager;
-    // 最短距離(公尺單位)
-    static private final long MINIMUM_DISTANCECHANGE_FOR_UPDATE = 10;
-    // 最小時間(微秒單位)
-    public static long MINIMUM_TIME_BETWEEN_UPDATE = 1000000;
-    public static Location myLocation;
-    static LocationListener locationListener = new LocationListener() {
-        public void onLocationChanged(Location location) {
-            myLocation = location;
-            // 繪製標記
-            //LatLng latlng = new LatLng(location.getLatitude(), location.getLongitude());
+    public static Intent GPS;
+    private Timer timer;
+    private boolean lockTouch = false;
+    boolean locationDesFlag = true;
+    int nowRouteDes = 0;
+    private double diffValueLat;  //Lat差異值
+    private double diffValueLng;  //Lng差異值
 
-            latitude = location.getLatitude();
-            longitude = location.getLongitude();
-        }
-
-        public void onStatusChanged(String s, int i, Bundle b) {
-        }
-
-        public void onProviderDisabled(String s) {
-        }
-
-        public void onProviderEnabled(String s) {
-        }
-    };
+    private List<PathResponse.RoutesBean.LegsBean.StepsBean> stepLocation = new ArrayList<>();
     private ActivityResultLauncher gpsLaunch = registerForActivityResult(new ActivityResultContracts.RequestPermission(), result -> {
 
     });
@@ -76,23 +55,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_maps);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         binding.btn.setOnClickListener(this);
         binding.camera.setOnClickListener(this);
-        getLocation(this);
-
-
+        binding.navigator.setOnClickListener(this);
+        binding.navigatorStop.setOnClickListener(this);
+        GPS = new Intent(MapsActivity.this, GpsService.class);
+        startService(GPS);
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        LatLng sydney = new LatLng(latitude, longitude);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Taichung"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(@NonNull LatLng latLng) {
+                lockTouch = !lockTouch;
+            }
+        });
     }
 
     private void moveCamera(LatLng latLng) {
@@ -108,23 +90,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         switch (v.getId()) {
             case R.id.btn:
                 ApiService service = new ApiManager().getAPI();
-                service.doQueryPath("台中市", "台北市", "AIzaSyCn_mqOYGGjZZt2Cm7Ma5itLVl7LGPOnBw")
+                service.doQueryPath(Constants.APP_LAT_LNG.latitude+","+Constants.APP_LAT_LNG.longitude, "台北市", "AIzaSyCn_mqOYGGjZZt2Cm7Ma5itLVl7LGPOnBw", "zh-TW")
                         .timeout(ApiManager.TIMEOUT, TimeUnit.SECONDS)
                         .subscribeOn(Schedulers.io())
                         .observeOn(Schedulers.single())
                         .subscribe(
                                 response -> {
                                     if (response.isSuccessful()) {
+                                        stepLocation = response.body().getRoutes().get(0).getLegs().get(0).getSteps();
+                                        //起點座標
+                                        final double startLat = response.body().getRoutes().get(0).getLegs().get(0).getStart_location().getLat();
+                                        final double startLng = response.body().getRoutes().get(0).getLegs().get(0).getStart_location().getLng();
+                                        //終點座標
+                                        final double endLat = response.body().getRoutes().get(0).getLegs().get(0).getEnd_location().getLat();
+                                        final double endLng = response.body().getRoutes().get(0).getLegs().get(0).getEnd_location().getLng();
+
+                                        //計算差異值
+                                        diffValueLat = startLat - endLat;
+                                        diffValueLng = startLng - endLng;
+
+                                        //Google路線解析畫圖
                                         PolylineOptions lineOptions = new PolylineOptions();
                                         List<LatLng> list = PolyUtil.decode(response.body().getRoutes().get(0).getOverview_polyline().getPoints());
                                         lineOptions.addAll(list);
                                         lineOptions.width(12);
                                         lineOptions.color(Color.RED);
                                         lineOptions.geodesic(true);
+                                        //距離
+                                        int distance = response.body().getRoutes().get(0).getLegs().get(0).getDistance().getValue();
+                                        int km = distance / 1000;
+                                        int mm = distance % 1000;
+                                        Log.d("Kai", km + "km " + mm + "mm");
+                                        //時間
+                                        int duration = response.body().getRoutes().get(0).getLegs().get(0).getDuration().getValue();
+                                        int hour = duration / 60 / 60;
+                                        int minute = duration % 60;
+                                        Log.d("Kai", hour + "hour" + minute + "minute");
                                         runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
                                                 mMap.addPolyline(lineOptions);
+                                                binding.tvDistance.setText(km + "公里" + mm + "公尺");
+                                                binding.tvDuration.setText(hour + "小時" + minute + "分");
                                             }
                                         });
                                     } else {
@@ -138,41 +145,69 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 ;
                 break;
             case R.id.camera:
-                Log.d("KAI", latitude + "");
-                Log.d("KAI", longitude + "");
-                LatLng latLng = new LatLng(latitude, longitude);
-                moveCamera(latLng);
+                moveCamera(Constants.APP_LAT_LNG);
+                break;
+            case R.id.navigator:
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(Constants.APP_LAT_LNG, 15));
+                timer = new Timer();
+                TimerTask task = new TimerTask() {
+                    @Override
+                    public void run() {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                MarkerOptions mark = new MarkerOptions();
+                                mark.position(Constants.APP_LAT_LNG);
+                                binding.lat.setText(String.valueOf(Constants.APP_LAT_LNG.latitude));
+                                binding.lng.setText(String.valueOf(Constants.APP_LAT_LNG.longitude));
+
+                                double startLat = stepLocation.get(nowRouteDes).getStart_location().getLat();
+                                double startLng = stepLocation.get(nowRouteDes).getStart_location().getLng();
+
+                                double endLat = stepLocation.get(nowRouteDes).getEnd_location().getLat();
+                                double endLng = stepLocation.get(nowRouteDes).getEnd_location().getLng();
+
+                                double diffKm = getDistance(Constants.APP_LAT_LNG.latitude, Constants.APP_LAT_LNG.longitude, startLat, startLng);
+                                String path;
+                                Log.d("KAI","距離下一個轉折點還有"+diffKm+"公尺");
+                                if (diffKm < 200) {
+                                    nowRouteDes++;
+                                    path = filterPath(stepLocation.get(nowRouteDes).getHtml_instructions());
+                                } else {
+                                    path = filterPath(stepLocation.get(nowRouteDes).getHtml_instructions());
+                                }
+                                binding.step.setText(path);
+
+                                mMap.addMarker(mark);
+                                if (lockTouch) {
+                                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(Constants.APP_LAT_LNG, 15));
+                                }
+
+                            }
+                        });
+                    }
+                };
+                timer.schedule(task, 3000, 3000);
+                break;
+            case R.id.navigatorStop:
+                if (timer != null) {
+                    timer.cancel();
+                }
                 break;
         }
     }
 
-    synchronized static public void getLocation(Activity activity) {
-        Criteria criteria = new Criteria();
-        criteria.setAccuracy(Criteria.ACCURACY_FINE);//設置為最大精度
-        criteria.setAltitudeRequired(false);//不要求海拔資訊
-        criteria.setBearingRequired(false);//不要求方位資訊
-        criteria.setCostAllowed(true);//是否允許付費
-        criteria.setPowerRequirement(Criteria.POWER_LOW);//對電量的要求
+    private String filterPath(String str) {
+        String path = str.replace("<b>", "");
+        path = path.replace("</b>", "");
+        path = path.replace("/<wbr/>", "");
+        return path;
+    }
 
-        LocationManager locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
-
-        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            Intent intent = new Intent();
-            intent.setAction(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-            activity.startActivity(intent);
-        }
-        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Intent intent = new Intent();
-            intent.setAction(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-            activity.startActivity(intent);
-            return;
-        }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MINIMUM_TIME_BETWEEN_UPDATE,            //每一秒、十公尺偵測一次
-                MINIMUM_DISTANCECHANGE_FOR_UPDATE, locationListener);
-
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MINIMUM_TIME_BETWEEN_UPDATE,            //每一秒、十公尺偵測一次
-                MINIMUM_DISTANCECHANGE_FOR_UPDATE, locationListener);
-        String provider = locationManager.getBestProvider(criteria, true);
-        myLocation = locationManager.getLastKnownLocation(provider);
+    //取得兩點的距離
+    public double getDistance(double lat1, double lon1, double lat2, double lon2) {
+        float[] results = new float[1];
+        Location.distanceBetween(lat1, lon1, lat2, lon2, results);
+        return results[0];//單位 公尺
     }
 }
