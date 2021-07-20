@@ -29,6 +29,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -46,7 +47,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ActivityMapsBinding binding;
     private GoogleMap mMap;
     public static Intent GPS;
-    private Timer timer;
+    private Timer timer  = null;
+    private TimerTask task = null;
     private boolean lockTouch = false;
     int tempRouteDes =0;
     int nowRouteDes = 0;
@@ -87,6 +89,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
     }
+
 
     private void moveCamera(LatLng latLng) {
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 8));
@@ -171,13 +174,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(Constants.APP_LAT_LNG, 18));
                 if(stepLocation!=null && stepLocation.size()!=0) {
                     timer = new Timer();
-                    TimerTask task = new TimerTask() {
+                    task = new TimerTask() {
                         @Override
                         public void run() {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-
                                     binding.lat.setText(String.valueOf(Constants.APP_LAT_LNG.latitude));
                                     binding.lng.setText(String.valueOf(Constants.APP_LAT_LNG.longitude));
 
@@ -199,7 +201,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     //轉折角度
                                     float bearing  = Constants.APP_LOCATION.bearingTo(targetLocation);
                                     positionMark.setRotation(bearing);
-                                    Log.d("KAI", "轉折角度");
 
                                     double diffKm = getDistance(Constants.APP_LAT_LNG.latitude, Constants.APP_LAT_LNG.longitude, endLat, endLng);
                                     String path = null;
@@ -212,27 +213,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     } else {
                                         path = filterPath(stepLocation.get(nowRouteDes).getHtml_instructions());
                                     }
-//                                    Log.d("KAI", "距離下一個轉折點還有" + diffKm + "公尺");
+                                    DecimalFormat df = new DecimalFormat("###.##");
+                                    binding.nextLastM.setText(df.format(diffKm));
+                                    Log.d("KAI", "距離下一個轉折點還有" + diffKm + "公尺");
 
 
                                     binding.step.setText(path);
                                     if (lockTouch) {
-                                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(Constants.APP_LAT_LNG, 15));
+                                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(Constants.APP_LAT_LNG, 18));
                                     }
 
                                 }
                             });
                         }
                     };
-                    timer.schedule(task, 3000, 3000);
+                    timer.schedule(task, 3000, 1500);
                 }else {
                     Toast.makeText(this,"還未有路線",Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.navigatorStop:
-                if (timer != null) {
                     timer.cancel();
-                }
                 break;
             case R.id.bt_translateAddress:
                 String address = binding.etAddress.getText().toString();
@@ -266,9 +267,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private String filterPath(String str) {
-        String path = str.replace("<b>", "");
-        path = path.replace("</b>", "");
-        path = path.replace("/<wbr/>", "");
+        String path = str.replace("<", "");
+        path = path.replace(">", "");
+        path = path.replace("/", "");
+        path = path.replace("\\/", "");
+        path = path.replace("div", "");
+        path = path.replace("em", "");
+        path = path.replace("style", "");
+        path = path.replace("=", "");
+        path = path.replace("b", "");
+        path = path.replace("w", "");
+        path = path.replace("r", "");
+        path = path.replace("-", "");
+        path = path.replace("font", "");
+        path = path.replace("size", "");
+        path = path.replace(":", "");
+        path = path.replace("\"", "");
+        path = path.replace(".", "");
+        path = path.replace("01", "");
+        path = path.replace("09", "");
         return path;
     }
 

@@ -1,81 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout>
-<LinearLayout android:layout_height="match_parent"
+<LinearLayout
+    android:orientation="vertical"
+    android:layout_height="match_parent"
     android:layout_width="match_parent"
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <fragment
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="wrap_content"
-        android:layout_weight="2"
-        android:layout_height="match_parent"
-        tools:context=".MapsActivity" />
     <LinearLayout
-        android:orientation="vertical"
+        android:layout_width="match_parent"
         android:layout_weight="1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-        <Button
-            android:id="@+id/btn"
-            android:text="路線繪製"
+        android:layout_height="match_parent">
+        <fragment
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <Button
-            android:id="@+id/camera"
-            android:text="移位"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <Button
-            android:id="@+id/navigator"
-            android:text="開始導航"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <Button
-            android:id="@+id/navigatorStop"
-            android:text="停止導航"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:id="@+id/lat"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:id="@+id/lng"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:id="@+id/tvDuration"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:id="@+id/tvDistance"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:id="@+id/step"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_weight="2"
+            android:layout_height="match_parent"
+            tools:context=".MapsActivity" />
         <LinearLayout
             android:orientation="vertical"
-            android:layout_width="match_parent"
+            android:layout_weight="1"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content">
-            <EditText
-                android:id="@+id/et_address"
+            <Button
+                android:id="@+id/btn"
+                android:text="路線繪製"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
             <Button
-                android:id="@+id/bt_translateAddress"
-                android:text="地址轉換座標"
-                android:layout_width="wrap_content"
+                android:id="@+id/camera"
+                android:text="移位"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
+            <Button
+                android:id="@+id/navigator"
+                android:text="開始導航"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <Button
+                android:id="@+id/navigatorStop"
+                android:text="停止導航"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <TextView
+                android:id="@+id/lat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <TextView
+                android:id="@+id/lng"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <TextView
+                android:id="@+id/tvDuration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <TextView
+                android:id="@+id/tvDistance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <EditText
+                    android:id="@+id/et_address"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+                <Button
+                    android:id="@+id/bt_translateAddress"
+                    android:text="地址轉換座標"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <Button
+                android:id="@+id/bt_clear"
+                android:text="清除"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/nextLastM"
+                    android:textSize="25sp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
         </LinearLayout>
-        <Button
-            android:id="@+id/bt_clear"
-            android:text="清除"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
     </LinearLayout>
+    <TextView
+        android:id="@+id/step"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
 
 </LinearLayout>
 </layout>

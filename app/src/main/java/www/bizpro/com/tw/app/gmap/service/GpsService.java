@@ -16,7 +16,7 @@ import www.bizpro.com.tw.app.gmap.Constants;
 public class GpsService extends Service {
     private final String TAG = this.getClass().getSimpleName();
     private LocationManager mLocationManager = null;
-    private static final int LOCATION_INTERVAL = 1000; //間隔距離[公尺]
+    private static final int LOCATION_INTERVAL = 1; //間隔距離[公尺]
     private static final float LOCATION_DISTANCE = 10f; //間隔秒數
     public static Location mLastLocation = null;
 
@@ -28,7 +28,7 @@ public class GpsService extends Service {
 
         @Override
         public void onLocationChanged(Location location) {
-            Log.e(TAG, "GPS: " + location.getLatitude() +"/"+location.getLongitude());
+            Log.i(TAG, "GPS: " + location.getLatitude() +"/"+location.getLongitude());
             Constants.APP_LOCATION = location;
             Constants.APP_LAT_LNG = new LatLng(location.getLatitude(), location.getLongitude());
 
@@ -67,7 +67,7 @@ public class GpsService extends Service {
             Criteria criteria = new Criteria();
             criteria.setAccuracy(Criteria.ACCURACY_FINE);//設置為最大精度
             criteria.setAltitudeRequired(false);//不要求海拔資訊
-            criteria.setBearingRequired(false);//不要求方位資訊
+            criteria.setBearingRequired(true);//不要求方位資訊
             criteria.setCostAllowed(true);//是否允許付費
             criteria.setPowerRequirement(Criteria.POWER_LOW);//對電量的要求
             mLocationManager.getBestProvider(criteria, true);

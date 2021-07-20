@@ -12,17 +12,41 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures {
         dataBinding true
     }
+
     buildTypes {
+        debug {
+            debuggable true
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        applicationVariants.all{
+            variant ->
+                variant.outputs.each{
+                    output->
+                        output.outputFileName =variant.buildType.name+"_CHPost_V"+versionName+".apk"
+                }
+        }
+    }
+
+    flavorDimensions('environment')
+    productFlavors {
+        sampleTest {
+            buildConfigField "String", "BASE_URL", "\"https://jsonplaceholder.typicode.com/\""
+        }
+        develop {
+            buildConfigField "String", "BASE_URL", "\"http://192.168.0.29:88/\""
+        }
+        production {
+            buildConfigField "String", "BASE_URL", "\"\""
+        }
+
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -50,7 +74,6 @@ dependencies {
     //RxJava
     implementation "io.reactivex.rxjava3:rxjava:3.0.0"
     implementation 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'
-
 
     //地圖解碼
     implementation 'com.google.maps.android:maps-utils-ktx:2.4.0'
