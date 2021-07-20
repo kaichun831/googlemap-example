@@ -3,7 +3,7 @@ package www.bizpro.com.tw.app.gmap.response;
 import java.util.List;
 
 
-public class PathResponse {
+public class GoogleMapPathResponse {
     private List<GeocodedWaypointsBean> geocoded_waypoints;
     private List<RoutesBean> routes;
     private String status;

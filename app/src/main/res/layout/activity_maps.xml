@@ -7,16 +7,18 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="250dp"
+        android:layout_width="wrap_content"
+        android:layout_weight="2"
         android:layout_height="match_parent"
         tools:context=".MapsActivity" />
     <LinearLayout
         android:orientation="vertical"
-        android:layout_width="match_parent"
+        android:layout_weight="1"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <Button
             android:id="@+id/btn"
-            android:text="測試"
+            android:text="路線繪製"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <Button
@@ -52,6 +54,25 @@
             android:layout_height="wrap_content"/>
         <TextView
             android:id="@+id/step"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <EditText
+                android:id="@+id/et_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <Button
+                android:id="@+id/bt_translateAddress"
+                android:text="地址轉換座標"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+        <Button
+            android:id="@+id/bt_clear"
+            android:text="清除"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </LinearLayout>
