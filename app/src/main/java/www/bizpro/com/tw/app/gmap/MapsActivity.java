@@ -162,7 +162,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 targetLocation.setLongitude(30);
                 float bearing  = Constants.APP_LOCATION.bearingTo(targetLocation);
                 Log.d("KAI","位置軸線角度"+bearing+"");
-                BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.ccar);
+                BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.car);
                 markerOptions.icon(icon);
                 Marker marker = mMap.addMarker(markerOptions);
                 marker.setRotation(bearing);
@@ -190,7 +190,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                     MarkerOptions markerOptions = new MarkerOptions();
                                     markerOptions.position(Constants.APP_LAT_LNG);
-                                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ccar));
+                                    markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.car));
                                     if (positionMark != null) {
                                         positionMark.remove();
                                     }
@@ -200,7 +200,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     targetLocation.setLongitude(endLng);
                                     //轉折角度
                                     float bearing  = Constants.APP_LOCATION.bearingTo(targetLocation);
-                                    positionMark.setRotation(bearing);
+                                    positionMark.setAnchor(0.5f,0.5f);
+                                    positionMark.setRotation(bearing); //設定旋轉角度
+                                    positionMark.setFlat(true); //不隨著攝影機轉動
 
                                     double diffKm = getDistance(Constants.APP_LAT_LNG.latitude, Constants.APP_LAT_LNG.longitude, endLat, endLng);
                                     String path = null;
