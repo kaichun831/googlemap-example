@@ -50,10 +50,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Timer timer  = null;
     private TimerTask task = null;
     private boolean lockTouch = false;
-    int tempRouteDes =0;
     int nowRouteDes = 0;
     List<Double>  distance = new ArrayList();
-    int  distanceCount= 0;
+    private double nowDiff;
     private ApiService service = new ApiManager().getAPI();
     private Marker positionMark;
     private List<GoogleMapPathResponse.RoutesBean.LegsBean.StepsBean> stepLocation = new ArrayList<>();
@@ -77,6 +76,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},100);
         GPS = new Intent(MapsActivity.this, GpsService.class);
         startService(GPS);
+
     }
 
     @Override
@@ -100,7 +100,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn:
-                service.doQueryPath(Constants.APP_LAT_LNG.latitude+","+Constants.APP_LAT_LNG.longitude, "台北市", Constants.API_KEY,Constants.API_LANGUAGE)
+                String targetAddress = binding.etAddress.getText().toString();
+                if(Constants.APP_LAT_LNG!=null){
+                service.doQueryPath(Constants.APP_LAT_LNG.latitude+","+Constants.APP_LAT_LNG.longitude, targetAddress, Constants.API_KEY,Constants.API_LANGUAGE)
                         .timeout(ApiManager.TIMEOUT, TimeUnit.SECONDS)
                         .subscribeOn(Schedulers.io())
                         .observeOn(Schedulers.single())
@@ -133,7 +135,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         //時間
                                         int duration = response.body().getRoutes().get(0).getLegs().get(0).getDuration().getValue();
                                         int hour = duration / 60 / 60;
-                                        int minute = duration % 60;
+                                        int minute = duration / 60;
+
                                         Log.d("Kai", hour + "hour" + minute + "minute");
                                         runOnUiThread(new Runnable() {
                                             @Override
@@ -151,7 +154,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     throwable.getStackTrace();
                                 }
                         );
-                ;
+
+                }
                 break;
             case R.id.camera:
 //                moveCamera(Constants.APP_LAT_LNG);
@@ -205,19 +209,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     positionMark.setFlat(true); //不隨著攝影機轉動
 
                                     double diffKm = getDistance(Constants.APP_LAT_LNG.latitude, Constants.APP_LAT_LNG.longitude, endLat, endLng);
-                                    String path = null;
-                                    if (diffKm < 30) {
-                                        distance.add(diffKm);
-                                        if (distance.size() > 2 && (distance.get(distance.size() - 1) - distance.get(distance.size() - 2) > 30)) {
-                                            nowRouteDes++;
+
+                                    /**
+                                     * 如果現在與下一個節點的距離小於30並且
+                                     * 第一次獲取的位置與節點的距離和下一次貨取與節點的距離必須 > 30
+                                     *，開始導向下一個節點
+                                     * */
+                                    Log.d("Diff","最新距離"+diffKm);
+                                    Log.d("Diff","上一個距離"+nowDiff);
+                                    String path=null;
+                                    if(nowDiff==0){
+                                        nowDiff=diffKm;
+                                        path= filterPath(stepLocation.get(nowRouteDes).getHtml_instructions());
+                                    }else{
+                                        if(diffKm==nowDiff) {
+                                        }else {
+                                            if (diffKm < 30 && nowDiff - diffKm < 30){
+                                                nowRouteDes++;
+                                                Log.e("KAI","變換位置下一個節點");
+                                            }
+                                            nowDiff=diffKm;
                                             path = filterPath(stepLocation.get(nowRouteDes).getHtml_instructions());
                                         }
-                                    } else {
-                                        path = filterPath(stepLocation.get(nowRouteDes).getHtml_instructions());
                                     }
+
                                     DecimalFormat df = new DecimalFormat("###.##");
                                     binding.nextLastM.setText(df.format(diffKm));
-                                    Log.d("KAI", "距離下一個轉折點還有" + diffKm + "公尺");
+//                                    Log.d("KAI", "距離下一個轉折點還有" + diffKm + "公尺");
 
 
                                     binding.step.setText(path);
@@ -235,7 +253,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 break;
             case R.id.navigatorStop:
+                if(timer!=null) {
                     timer.cancel();
+                }
                 break;
             case R.id.bt_translateAddress:
                 String address = binding.etAddress.getText().toString();
