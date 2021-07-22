@@ -67,7 +67,7 @@ public class GpsService extends Service {
             Criteria criteria = new Criteria();
             criteria.setAccuracy(Criteria.ACCURACY_FINE);//設置為最大精度
             criteria.setAltitudeRequired(false);//不要求海拔資訊
-            criteria.setBearingRequired(false);//不要求方位資訊
+            criteria.setBearingRequired(true);//不要求方位資訊
             criteria.setCostAllowed(true);//是否允許付費
             criteria.setPowerRequirement(Criteria.POWER_LOW);//對電量的要求
             mLocationManager.getBestProvider(criteria, true);
