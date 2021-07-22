@@ -249,25 +249,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                      * 第一次獲取的位置與節點的距離和下一次貨取與節點的距離必須 > 30
                                      *，開始導向下一個節點
                                      * */
-//                                    Log.d("Diff","最新距離"+newDiff);
-//                                    Log.d("Diff","上一個距離"+oldDiff);
+                                    Log.d("Diff","最新距離"+newDiff);
+                                    Log.d("Diff","上一個距離"+oldDiff);
                                     String path = null;
                                     if (oldDiff == 0) {
                                         oldDiff = newDiff;
                                     } else {
-                                        if (newDiff < 30 && oldDiff != newDiff) {
+                                        if (newDiff < 5 && oldDiff != newDiff) {
                                             nowRouteDes++;
                                             Log.e("KAI", "變換位置下一個節點");
                                         }
-                                        else if(newDiff>oldDiff && newDiff-oldDiff>30 ) {
-                                            if(nowRouteDes!=0) {
-                                                nowRouteDes--;
-                                                Log.e("KAI", "超出範圍");
-                                            }else{
-                                                Toast.makeText(MapsActivity.this,"您非行駛在指引道路",Toast.LENGTH_SHORT).show();
-                                            }
-                                        }
-                                        oldDiff = newDiff;
+                                        oldDiff=newDiff;
+
                                     }
                                     path = filterPath(stepLocation.get(nowRouteDes).getHtml_instructions());
 
@@ -290,7 +283,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             });
                         }
                     };
-                    timer.schedule(task, 3000, 1000);
+                    timer.schedule(task, 2000, 1000);
                 } else {
                     Toast.makeText(this, "還未有路線", Toast.LENGTH_SHORT).show();
                 }
