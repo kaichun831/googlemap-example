@@ -81,6 +81,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 100);
         GPS = new Intent(MapsActivity.this, GpsService.class);
         startService(GPS);
+        new Thread(new Runnable() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void run() {
+                while (true){
+                    try {
+                        Thread.sleep(1000);
+                        if(Constants.APP_LOCATION==null) continue;
+                        break;
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        onClick(binding.camera);
+                    }
+                });
+
+
+            }
+        }).start();
 
     }
 
@@ -96,8 +119,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    private void moveCamera(LatLng latLng) {
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 8));
+    private void moveCamera(LatLng latLng,int zoom) {
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -166,18 +189,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //                moveCamera(Constants.APP_LAT_LNG);
                 MarkerOptions markerOptions = new MarkerOptions();
                 markerOptions.position(Constants.APP_LAT_LNG);
-                Location targetLocation = new Location("");
-                targetLocation.setLatitude(12);
-                targetLocation.setLongitude(30);
-                float bearing = Constants.APP_LOCATION.bearingTo(targetLocation);
-                Log.d("KAI", "位置軸線角度" + bearing + "");
                 BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.car1);
                 markerOptions.icon(icon);
                 Marker marker = mMap.addMarker(markerOptions);
-                marker.setRotation(bearing);
-                marker.setFlat(true);
                 marker.setAnchor(0.5f, 0.5f);
-                moveCamera(Constants.APP_LAT_LNG);
+                moveCamera(Constants.APP_LAT_LNG,16);
                 break;
             case R.id.navigator:
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(Constants.APP_LAT_LNG, 18));
@@ -307,7 +323,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
-                                                moveCamera(latLng);
+                                                moveCamera(latLng,16);
                                             }
                                         });
                                     } else {
